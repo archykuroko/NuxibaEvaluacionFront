@@ -1,18 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Container, Grid, Typography } from '@mui/material';
+import './App.css';
 
 import { fetchUsers } from './features/users/usersSlice';
-
-import {
-  clearPosts,
-  fetchPostsByUser,
-} from './features/posts/postsSlice';
-
-import {
-  clearTodos,
-  fetchTodosByUser,
-} from './features/todos/todosSlice';
+import { clearPosts, fetchPostsByUser } from './features/posts/postsSlice';
+import { clearTodos, fetchTodosByUser } from './features/todos/todosSlice';
 
 import UserList from './components/UserList';
 import UserDetails from './components/UserDetails';
@@ -22,27 +15,9 @@ import TodoForm from './components/TodoForm';
 
 function App() {
   const dispatch = useDispatch();
-
-  const { users, loading, error } = useSelector(
-    (state) => state.users
-  );
-
-  const {
-    posts,
-    loading: postsLoading,
-    error: postsError,
-  } = useSelector(
-    (state) => state.posts
-  );
-
-  const {
-    todos,
-    loading: todosLoading,
-    error: todosError,
-  } = useSelector(
-    (state) => state.todos
-  );
-
+  const { users, loading, error } = useSelector((state) => state.users);
+  const { posts, loading: postsLoading, error: postsError } = useSelector((state) => state.posts);
+  const { todos, loading: todosLoading, error: todosError } = useSelector((state) => state.todos);
   const [selectedUser, setSelectedUser] = useState(null);
   const [activeSection, setActiveSection] = useState(null);
 
@@ -52,7 +27,6 @@ function App() {
 
   const handleSelectUser = (user) => {
     setSelectedUser(user);
-
     dispatch(clearPosts());
     dispatch(clearTodos());
 
@@ -67,65 +41,46 @@ function App() {
 
   const handleShowPosts = (userId) => {
     setActiveSection('posts');
-
     dispatch(clearTodos());
     dispatch(fetchPostsByUser(userId));
   };
 
   const handleShowTodos = (userId) => {
     setActiveSection('todos');
-
     dispatch(clearPosts());
     dispatch(fetchTodosByUser(userId));
   };
 
   if (loading) {
-    return <p>Cargando usuarios...</p>;
+    return <Typography sx={{ p: 4 }}>Cargando usuarios...</Typography>;
   }
 
   if (error) {
-    return <p>Error: {error}</p>;
+    return <Typography color="error" sx={{ p: 4 }}>Error: {error}</Typography>;
   }
 
   return (
-    <Container sx={{ paddingY: 4 }}>
-      <Typography variant="h3" gutterBottom>
-        Gestión de usuarios
+    <Container maxWidth="xl" className="app-shell">
+      <Typography variant="h3" className="page-heading">
+        Gestión de Usuarios
       </Typography>
 
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <UserList
-            users={users}
-            selectedUserId={selectedUser?.id}
-            onSelectUser={handleSelectUser}
-          />
+      <Grid container spacing={{ xs: 2, md: 3 }}>
+        <Grid size={{ xs: 12, md: 4, lg: 3 }}>
+          <UserList users={users} selectedUserId={selectedUser?.id} onSelectUser={handleSelectUser} />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 8 }}>
-          <UserDetails
-            user={selectedUser}
-            onShowPosts={handleShowPosts}
-            onShowTodos={handleShowTodos}
-          />
+        <Grid size={{ xs: 12, md: 8, lg: 9 }} className="content-panel">
+          <UserDetails user={selectedUser} onShowPosts={handleShowPosts} onShowTodos={handleShowTodos} />
 
           {activeSection === 'posts' && (
-            <PostsList
-              posts={posts}
-              loading={postsLoading}
-              error={postsError}
-            />
+            <PostsList posts={posts} loading={postsLoading} error={postsError} />
           )}
 
           {activeSection === 'todos' && (
             <>
               <TodoForm userId={selectedUser.id} />
-
-              <TodosList
-                todos={todos}
-                loading={todosLoading}
-                error={todosError}
-              />
+              <TodosList todos={todos} loading={todosLoading} error={todosError} />
             </>
           )}
         </Grid>
