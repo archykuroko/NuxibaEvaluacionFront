@@ -53,3 +53,31 @@ const todosSlice = createSlice({
 export const { clearTodos } = todosSlice.actions;
 
 export default todosSlice.reducer;
+
+export const createTodo = createAsyncThunk(
+  'todos/createTodo',
+  async ({ userId, title, completed }) => {
+    const response = await fetch(
+      'https://jsonplaceholder.typicode.com/todos',
+      {
+        method: 'POST',
+
+        headers: {
+          'Content-Type': 'application/json',
+        },
+
+        body: JSON.stringify({
+          userId,
+          title,
+          completed,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('No se pudo crear la tarea');
+    }
+
+    return await response.json();
+  }
+);

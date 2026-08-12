@@ -18,6 +18,7 @@ import UserList from './components/UserList';
 import UserDetails from './components/UserDetails';
 import PostsList from './components/PostsList';
 import TodosList from './components/TodosList';
+import TodoForm from './components/TodoForm';
 
 function App() {
   const dispatch = useDispatch();
@@ -117,11 +118,15 @@ function App() {
           )}
 
           {activeSection === 'todos' && (
-            <TodosList
-              todos={todos}
-              loading={todosLoading}
-              error={todosError}
-            />
+            <>
+              <TodoForm userId={selectedUser.id} />
+
+              <TodosList
+                todos={todos}
+                loading={todosLoading}
+                error={todosError}
+              />
+            </>
           )}
         </Grid>
       </Grid>
