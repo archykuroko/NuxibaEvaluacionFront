@@ -1,122 +1,132 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Container, Grid, Typography } from '@mui/material';
+
+import { fetchUsers } from './features/users/usersSlice';
+
+import {
+  clearPosts,
+  fetchPostsByUser,
+} from './features/posts/postsSlice';
+
+import {
+  clearTodos,
+  fetchTodosByUser,
+} from './features/todos/todosSlice';
+
+import UserList from './components/UserList';
+import UserDetails from './components/UserDetails';
+import PostsList from './components/PostsList';
+import TodosList from './components/TodosList';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const dispatch = useDispatch();
+
+  const { users, loading, error } = useSelector(
+    (state) => state.users
+  );
+
+  const {
+    posts,
+    loading: postsLoading,
+    error: postsError,
+  } = useSelector(
+    (state) => state.posts
+  );
+
+  const {
+    todos,
+    loading: todosLoading,
+    error: todosError,
+  } = useSelector(
+    (state) => state.todos
+  );
+
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [activeSection, setActiveSection] = useState(null);
+
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [dispatch]);
+
+  const handleSelectUser = (user) => {
+    setSelectedUser(user);
+
+    dispatch(clearPosts());
+    dispatch(clearTodos());
+
+    if (activeSection === 'posts') {
+      dispatch(fetchPostsByUser(user.id));
+    }
+
+    if (activeSection === 'todos') {
+      dispatch(fetchTodosByUser(user.id));
+    }
+  };
+
+  const handleShowPosts = (userId) => {
+    setActiveSection('posts');
+
+    dispatch(clearTodos());
+    dispatch(fetchPostsByUser(userId));
+  };
+
+  const handleShowTodos = (userId) => {
+    setActiveSection('todos');
+
+    dispatch(clearPosts());
+    dispatch(fetchTodosByUser(userId));
+  };
+
+  if (loading) {
+    return <p>Cargando usuarios...</p>;
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <Container sx={{ paddingY: 4 }}>
+      <Typography variant="h3" gutterBottom>
+        Gestión de usuarios
+      </Typography>
 
-      <div className="ticks"></div>
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <UserList
+            users={users}
+            selectedUserId={selectedUser?.id}
+            onSelectUser={handleSelectUser}
+          />
+        </Grid>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <UserDetails
+            user={selectedUser}
+            onShowPosts={handleShowPosts}
+            onShowTodos={handleShowTodos}
+          />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          {activeSection === 'posts' && (
+            <PostsList
+              posts={posts}
+              loading={postsLoading}
+              error={postsError}
+            />
+          )}
+
+          {activeSection === 'todos' && (
+            <TodosList
+              todos={todos}
+              loading={todosLoading}
+              error={todosError}
+            />
+          )}
+        </Grid>
+      </Grid>
+    </Container>
+  );
 }
 
-export default App
+export default App;
